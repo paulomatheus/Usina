@@ -1,0 +1,285 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js">
+	</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"></script>
+<link href="css/estilo.css" rel="stylesheet" type="text/css" />
+
+<style type="text/css">
+body {
+	background-color: #0094ff;
+	background-repeat: no-repeat;
+	margin-left: 0px;
+	margin-top: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+}
+
+#bt1 {
+	position: absolute;
+	left: 527px;
+	top: 400px;
+	width: 182px;
+	height: 92px;
+	z-index: 9;
+}
+#bt2 {
+	position: absolute;
+	left: 745px;
+	top: 400px;
+	width: 145px;
+	height: 54px;
+	z-index: 9;
+}
+#rodape {
+	position: absolute;
+    top:97%;
+    width: 100%;
+}
+#tabela {
+	position: absolute;
+	left: 500px;
+	top: 150px;
+	width: 987px;
+	height: 53px;
+	z-index: 11;
+}
+
+</style>
+
+</head>
+
+<body>
+
+
+
+ <div id="bt1">
+ <button  id="alerta" style="font-size:36px">Alerta</button>
+   
+</div>
+<div id="bt2">
+  <button  id="refrigeracao" style="font-size:36px">Refrigeração</button>
+</div>
+<div id="tabela">
+    <table width="500" height="71" border="5">
+        <tr>
+            <td width="400"><font face="Arial Black" size="+1">Nível de água:</font></td>
+            <td width="100"><input type="text" disabled="disabled" id="nivelu" size="20" /></td>
+        </tr>
+        <tr>
+            <td><font face="Arial Black" size="+1">Umidade da barragem:</font></td>
+            <td><input type="text" disabled="disabled" id="umidadeu" size="20" /></td>
+        </tr>
+        <tr>
+            <td><font face="Arial Black" size="+1">Funcionamento dos cabos:</font></td>
+            <td><input type="text" disabled="disabled" id="cabosu" size="20" /></td>
+        </tr>
+        <tr>
+            <td><font face="Arial Black" size="+1">Temperatura das turbinas:</font></td>
+            <td><input type="text" disabled="disabled" id="temperaturau" size="20" /></td>
+        </tr>
+    </table> 
+</div>
+ 
+  <div align="center">
+      <!-- The core Firebase JS SDK is always required and must be listed first -->
+      <script src="https://www.gstatic.com/firebasejs/6.0.1/firebase.js"></script>
+
+      <script src="mqttws31.js" type="text/javascript"></script>
+      
+    <script type="text/javascript">
+          // Create a client instance
+          client = new Paho.MQTT.Client("postman.cloudmqtt.com", 35572, "Usina hidreletrica");
+
+          // set callback handlers
+          client.onConnectionLost = onConnectionLost;
+          client.onMessageArrived = onMessageArrived;
+          var options = {
+              useSSL: true,
+              userName: "sydbbenx",
+              password: "qhMXReEt6KcX",
+              //onSuccess:onConnect,
+              onFailure: doFail
+          }
+
+          // connect the client
+          client.connect(options);
+          var aux;
+          var aux1;
+		 
+          $("#umidadeu").val("0");
+          $("#temperaturau").val("0");
+          $("#nivelu").val("0");
+          $("#cabosu").val("0");
+   
+           
+          // called when the client connects
+          $('#alerta').click(function onConnect() {
+              // Once a connection has been made, make a subscription and send a message.
+              console.log("onConnect");
+
+              if (aux == 0) {
+                  message = new Paho.MQTT.Message("1");
+                  aux = 1;
+              } else {
+                  message = new Paho.MQTT.Message("0");
+                  aux = 0;
+              }
+
+              message.destinationName = "/umidade";
+              client.send(message);
+          });
+
+        $('#refrigeracao').click(function onConnect() {
+              
+              // Once a connection has been made, make a subscription and send a message.
+              console.log("onConnect");
+
+            if (aux1 == 0) {
+                  message = new Paho.MQTT.Message("1");
+                  aux1 = 1;
+              } else {
+                  message = new Paho.MQTT.Message("0");
+                  aux1 = 0;
+              }
+
+              message.destinationName = "/refrigeracao";
+              client.send(message);
+          });
+		  
+		setTimeout(onConnect, 2000);
+        function onConnect() {
+              // Once a connection has been made, make a subscription and send a message.
+              console.log("onConnect");
+			  client.subscribe("/cloudmqtt");
+			  message = new Paho.MQTT.Message("Hello CloudMQTT");
+             
+              client.subscribe("/Temperatura");
+              client.subscribe("/Nivel");
+              client.subscribe("/Pressao");
+              client.subscribe("/Cabos");
+              message.destinationName = "/cloudmqtt";
+    		  client.send(message);
+              aux = 0;
+              aux1 = 0;
+          }
+
+          function doFail(e) {
+              console.log(e);
+          }
+
+          // called when the client loses its connection
+          function onConnectionLost(responseObject) {
+              if (responseObject.errorCode !== 0) {
+                  console.log("onConnectionLost:" + responseObject.errorMessage);
+              }
+
+          }
+
+
+          // called when a message arrives
+
+
+
+          // Your web app's Firebase configuration
+          var firebaseConfig = {
+            apiKey: "AIzaSyAO_BSIB503WMYgm6Bi27W0CrABM1ZVFoQ",
+            authDomain: "usina-hidreletrica.firebaseapp.com",
+            databaseURL: "https://usina-hidreletrica.firebaseio.com",
+            projectId: "usina-hidreletrica",
+            storageBucket: "usina-hidreletrica.appspot.com",
+            messagingSenderId: "941426817988",
+            appId: "1:941426817988:web:09e8a670831c2321"
+          };
+          // Initialize Firebase
+          firebase.initializeApp(firebaseConfig);
+        var rootReft = firebase.database().ref().child('Usina/Temperaturas');
+        var rootRefn = firebase.database().ref().child('Usina/Niveis');
+        var rootRefu = firebase.database().ref().child('Usina/Umidades');
+        var rootRefc = firebase.database().ref().child('Usina/Cabos');
+        function salvar(estado) {
+            
+            if (estado == 1) {
+                rootReft.push($('#temperaturau').val());
+                rootReft.update({Temperatura: $('#temperaturau').val()});
+            } else if (estado == 2) {
+                rootRefn.push($('#nivelu').val());
+                rootRefn.update({Nivel: $('#nivelu').val()});
+            } if (estado == 3) {
+                rootRefu.push($('#umidadeu').val());
+                rootRefu.update({Umidade: $('#umidadeu').val()});
+            } if (estado == 4) {
+                rootRefc.push($('#cabosu').val());
+                rootRefc.update({Cabos: $('#cabosu').val()});
+            }
+          }
+
+          function onMessageArrived(message) {
+              client.subscribe("/Temperatura");
+              var topic = message.destinationName;
+              var payload = message.payloadString;
+			  var estado
+              if (topic == "/Temperatura") {
+                  var temp = payload;
+                  $("#temperaturau").val(temp + "ºC");
+				  estado=1;
+                  salvar(estado);
+              }
+              if (topic == "/Nivel") {
+                  var ni = payload;
+                  if (ni == 1) {
+                      $("#nivelu").val("Cheio");
+                  } else {
+                      $("#nivelu").val("Vazio");
+                  }
+				  estado=2;
+                  salvar(estado);
+              }
+              if (topic == "/Pressao") {
+                  var pre = payload;
+                  $("#umidadeu").val(pre+"%");
+				  estado=3;
+                  salvar(estado);
+              }
+              if (topic == "/Cabos") {
+                  var ca = payload;
+                  if (ca == 1) {
+                      $("#cabosu").val("OK");
+                  } else {
+                      $("#cabosu").val("ALERTA!!");
+                  }
+				  estado=4;
+                  salvar(estado);
+              }
+          }
+
+      setTimeout(load, 500);
+	  function load() {
+			rootReft.once('value', function(snapshot){$('#temperaturau').val(snapshot.child('Temperatura').val());});
+			rootRefn.once('value', function(snapshot){$('#nivelu').val(snapshot.child('Nivel').val());});
+			rootRefu.once('value', function(snapshot){$('#umidadeu').val(snapshot.child('Umidade').val());	});
+			rootRefc.once('value', function(snapshot){$('#cabosu').val(snapshot.child('Cabos').val());});
+			return;
+	  }
+		  
+
+        
+      </script>
+<div id="painel" style="background-color:#000">
+  <div align="center">
+    <div style="background-color:#000"><a href="Paulo.html"><font face="Arial Black" color="#0094ff" size="+2"> USINA</font></a>   
+    </div>
+  </div>
+</div>
+<div id="rodape" style="background-color:#000;color: #FFF">
+  <div>
+    <div align="center">Usina Hidrelétrica</div>
+  </div>
+</div>
+<script type="text/javascript">
+</script>
+</body>
+</html>
